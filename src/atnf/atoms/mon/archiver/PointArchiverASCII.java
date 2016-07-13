@@ -375,6 +375,45 @@ public class PointArchiverASCII extends PointArchiver {
   }
 
   /**
+   * Method to extract data from the archive.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param start
+   *          Earliest time in the range of interest.
+   * @param end
+   *          Most recent time in the range of interest.
+   * @return Vector containing all data for the point over the time range.
+   */
+  public Vector<PointData> extractDeep(PointDescription pm, AbsTime start, AbsTime end, int maxRecords) {
+    // AbsTime starttime = new AbsTime();
+    Vector<PointData> res = new Vector<PointData>(1000, 1000);
+    // Get the archive directory for the given point
+    String dir = getDir(pm);
+
+    // Get all the archive files relevant to the period of interest
+    Vector<String> files = getFiles(dir, start, end);
+
+    // Try to load data from each of the files
+    for (int j = 0; j < files.size(); j++) {
+      loadFile(res, pm, dir + FSEP + files.get(j), start, end, true);
+      if (maxRecords >=0 &&  res.size() >= maxRecords) {
+        // Max size limit to prevent server bogging down
+        // MonitorMap.logger.warning("MoniCA Server: Truncating archive request
+        // to " +
+        // res.size() + " records");
+        break;
+      }
+    }
+    // AbsTime endtime = new AbsTime();
+    // RelTime diff = Time.diff(endtime, starttime);
+    // System.err.println("Request for " + pm.getName() + " took "
+    // + (diff.getValue()/1000) + " ms for " + res.size() + " records");
+    return res;
+  }
+  
+  
+  /**
    * Return the last update which precedes the specified time. We interpret 'precedes' to mean data_time<=req_time.
    * 
    * @param pm
@@ -590,11 +629,9 @@ public class PointArchiverASCII extends PointArchiver {
     } else if (type.equals("long")) {
       res = new Long(data);
     } else if (type.equals("abst")) {
-      long foo = Long.parseLong(data, 16); // Hex
-      res = AbsTime.factory(foo);
+      res = AbsTime.factory(data);
     } else if (type.equals("relt")) {
-      long foo = Long.parseLong(data); // Decimal
-      res = RelTime.factory(foo);
+      res = RelTime.factory(data);
     } else if (type.equals("big")) {
       res = new BigInteger(data);
     } else if (type.equals("null")) {
