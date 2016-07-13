@@ -1117,9 +1117,29 @@ final public class AbsTime implements Cloneable, Serializable, Immutable, Compar
         // The value of 3506716800000000L is the BAT as at midnight on
         // 1-Jan-1970, which is the base of the time that the system
         // gives us. It has to be adjusted for leap seconds though.
-        return new Date((itsValue - DUTC.get() * 1000000L - 3506716800000000L) / 1000L);
+        
+        //BUG? : should be DUTC.get(itsValue)
+        return new Date((itsValue - DUTC.get(itsValue) * 1000000L - 3506716800000000L) / 1000L);
     }
 
+    /**
+     * Get the value of this object as a Date
+     */
+    public long getAsTimestampMicroSec()
+    {
+        // Nope, shouldn't do that
+        if (isASAP() || isNEVER()) {
+            return -1L;
+        }
+
+        // The value of 3506716800000000L is the BAT as at midnight on
+        // 1-Jan-1970, which is the base of the time that the system
+        // gives us. It has to be adjusted for leap seconds though.
+        return (itsValue - DUTC.get(itsValue) * 1000000L - 3506716800000000L);
+    }
+
+    
+    
     /**
      * Get the value of this object as a decimal Modified Julian Date.
      */
